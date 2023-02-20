@@ -20,15 +20,12 @@ def crawl(starting_url, base_url):
             continue
         visited_urls.add(url)
 
-        # Make a request to the URL and get the response
-        response = requests.get(url)
-
-        # Check the MIME type of the response
-        if 'text/html' not in response.headers['Content-Type']:
-            continue
+        # Make a request to the URL and get the HTML content
+        response = requests.get(url, verify=False)
+        html = response.content
 
         # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(html, 'html.parser')
 
         # Find all the text in the HTML content
         text = soup.get_text()
