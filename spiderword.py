@@ -1,13 +1,15 @@
-import urllib3
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse
 import re
 import queue
+from urllib.parse import urlparse
+import urllib3
+from bs4 import BeautifulSoup
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 visited_urls = set()
-
-# Create a connection pool
-http = urllib3.PoolManager()
 
 def crawl(starting_url, base_url):
     # Initialize a queue with the starting URL
@@ -24,8 +26,8 @@ def crawl(starting_url, base_url):
         visited_urls.add(url)
 
         # Make a request to the URL and get the HTML content
-        response = http.request('GET', url, fields={})
-        html = response.data
+        response = requests.get(url, verify=False)
+        html = response.content
 
         # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(html, 'html.parser')
