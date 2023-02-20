@@ -45,6 +45,9 @@ def crawl(starting_url, base_url):
         with open('wordlist.txt', 'a', encoding='utf-8') as f:
             f.write('\n'.join(sorted(unique_words)) + '\n')
 
+        # Count the number of unique words found
+        num_unique_words = len(unique_words)
+
         # Find all the links on the page and add them to the queue
         for link in soup.find_all('a'):
             next_url = link.get('href')
@@ -54,8 +57,8 @@ def crawl(starting_url, base_url):
                 if parsed_url.netloc == parsed_base_url.netloc or parsed_url.netloc.endswith('.' + parsed_base_url.netloc):
                     q.put(next_url)
 
-        # Print a progress message to indicate which page was crawled
-        print(f"Crawled page: {url}")
+        # Print a progress message to indicate which page was crawled and the number of unique words found
+        print(f"Crawled page: {url} [{num_unique_words} word(s) found]")
 
 # Read the starting URL from a file called url.txt
 with open('url.txt') as f:
