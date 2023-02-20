@@ -1,5 +1,4 @@
 import re
-import queue
 from urllib.parse import urlparse
 import urllib3
 from bs4 import BeautifulSoup
@@ -8,18 +7,18 @@ from urllib3.exceptions import InsecureRequestWarning
 urllib3.disable_warnings(category=InsecureRequestWarning)
 
 visited_urls = set()
+urls_to_crawl = set()
 
 def crawl(starting_url, base_url):
     # Initialize a PoolManager object
     http = urllib3.PoolManager()
 
-    # Initialize a queue with the starting URL
-    q = queue.Queue()
-    q.put(starting_url)
+    # Add the starting URL to the set of URLs to crawl
+    urls_to_crawl.add(starting_url)
 
-    while not q.empty():
-        # Get the next URL from the queue
-        url = q.get()
+    while urls_to_crawl:
+        # Get the next URL from the set of URLs to crawl
+        url = urls_to_crawl.pop()
 
         # Check if we have already visited this URL
         if url in visited_urls:
@@ -50,14 +49,14 @@ def crawl(starting_url, base_url):
         # Count the number of unique words found
         num_unique_words = len(unique_words)
 
-        # Find all the links on the page and add them to the queue
+        # Find all the links on the page and add them to the set of URLs to crawl
         for link in soup.find_all('a'):
             next_url = link.get('href')
             if next_url and next_url.startswith('http'):
                 parsed_url = urlparse(next_url)
                 parsed_base_url = urlparse(base_url)
                 if parsed_url.netloc == parsed_base_url.netloc or parsed_url.netloc.endswith('.' + parsed_base_url.netloc):
-                    q.put(next_url)
+                    urls_to_crawl.add(next_url)
 
         # Print a progress message to indicate which page was crawled and the number of unique words found
         print(f"Crawled page: {url} [{num_unique_words} word(s) found]")
