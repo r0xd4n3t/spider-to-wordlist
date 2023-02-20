@@ -81,7 +81,7 @@ def crawl(starting_url, base_url):
         text = soup.get_text()
 
         # Split the text into words
-        words = re.findall(r'\b[a-zA-Z0-9]+\b', text)
+        words = re.findall(r"[a-zA-Z0-9]+", text)
 
         # Remove any duplicate words
         unique_words = set(words)
