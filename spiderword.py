@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import urllib3
 from bs4 import BeautifulSoup
 from urllib3.exceptions import InsecureRequestWarning
+from urllib.parse import urljoin
 
 urllib3.disable_warnings(category=InsecureRequestWarning)
 
@@ -52,11 +53,13 @@ def crawl(starting_url, base_url):
         # Find all the links on the page and add them to the set of URLs to crawl
         for link in soup.find_all('a'):
             next_url = link.get('href')
-            if next_url and next_url.startswith('http'):
-                parsed_url = urlparse(next_url)
-                parsed_base_url = urlparse(base_url)
-                if parsed_url.netloc == parsed_base_url.netloc or parsed_url.netloc.endswith('.' + parsed_base_url.netloc):
-                    urls_to_crawl.add(next_url)
+            if next_url:
+                absolute_url = urljoin(base_url, next_url)
+                parsed_url = urlparse(absolute_url)
+                if parsed_url.scheme == 'http' or parsed_url.scheme == 'https':
+                    if parsed_url.netloc == urlparse(base_url).netloc or parsed_url.netloc.endswith('.' + urlparse(base_url).netloc):
+                        urls_to_crawl.add(absolute_url)
+
 
         # Print a progress message to indicate which page was crawled and the number of unique words found
         print(f"Crawled page: {url} [{num_unique_words} word(s) found]")
