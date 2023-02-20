@@ -10,6 +10,11 @@ urllib3.disable_warnings(category=InsecureRequestWarning)
 visited_urls = set()
 urls_to_crawl = set()
 
+def write_wordlist(words):
+    # Write the unique words to a file called wordlist.txt
+    with open('wordlist.txt', 'a', encoding='utf-8') as f:
+        f.write('\n'.join(sorted(words)) + '\n')
+
 def crawl(starting_url, base_url):
     # Initialize a PoolManager object
     http = urllib3.PoolManager()
@@ -44,8 +49,7 @@ def crawl(starting_url, base_url):
         unique_words = set(words)
 
         # Write the unique words to a file called wordlist.txt
-        with open('wordlist.txt', 'a', encoding='utf-8') as f:
-            f.write('\n'.join(sorted(unique_words)) + '\n')
+        write_wordlist(unique_words)
 
         # Count the number of unique words found
         num_unique_words = len(unique_words)
