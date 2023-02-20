@@ -47,8 +47,10 @@ def crawl(starting_url, base_url):
             print(f"[x] Wordlist: Running..Clean up!")
             with open('wordlist.txt', 'r', encoding='utf-8') as f:
                 unique_words = set(line.strip() for line in f if line.strip() and re.search("^[a-zA-Z0-9_.,!?@#$%^&*()-=+ ]*$", line))
+            sorted_unique_words = sorted(unique_words)
             with open('unique_wordlist.txt', 'w', encoding='utf-8') as f:
-                f.write('\n'.join(unique_words))
+                for word in sorted_unique_words:
+                    f.write(f"{word}\n")
             os.replace('unique_wordlist.txt', 'wordlist.txt')
             wordlist_size_after = os.path.getsize('wordlist.txt')
             print(f"[x] Wordlist: file size after cleanup: {wordlist_size_after / 1024:.2f} KB")
