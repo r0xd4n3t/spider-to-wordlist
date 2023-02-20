@@ -1,10 +1,13 @@
-import requests
+import urllib3
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
 import queue
 
 visited_urls = set()
+
+# Create a connection pool
+http = urllib3.PoolManager()
 
 def crawl(starting_url, base_url):
     # Initialize a queue with the starting URL
@@ -21,8 +24,8 @@ def crawl(starting_url, base_url):
         visited_urls.add(url)
 
         # Make a request to the URL and get the HTML content
-        response = requests.get(url, verify=False)
-        html = response.content
+        response = http.request('GET', url, fields={})
+        html = response.data
 
         # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(html, 'html.parser')
