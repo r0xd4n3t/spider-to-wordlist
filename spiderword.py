@@ -12,6 +12,9 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 visited_urls = set()
 
 def crawl(starting_url, base_url):
+    # Initialize a session object
+    session = requests.Session()
+
     # Initialize a queue with the starting URL
     q = queue.Queue()
     q.put(starting_url)
@@ -25,8 +28,8 @@ def crawl(starting_url, base_url):
             continue
         visited_urls.add(url)
 
-        # Make a request to the URL and get the HTML content
-        response = requests.get(url, verify=False)
+        # Make a request to the URL using the session object and get the HTML content
+        response = session.get(url, verify=False)
         html = response.content
 
         # Parse the HTML content using BeautifulSoup
