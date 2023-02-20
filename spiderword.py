@@ -1,15 +1,17 @@
 import re
 import random
-from urllib.parse import urlparse
+import time
+import os
+from urllib.parse import urlparse, urljoin
 import urllib3
 from bs4 import BeautifulSoup
 from urllib3.exceptions import InsecureRequestWarning
-from urllib.parse import urljoin
 
 urllib3.disable_warnings(category=InsecureRequestWarning)
 
 visited_urls = set()
 urls_to_crawl = set()
+last_cleanup_time = time.time()
 
 def write_wordlist(words):
     # Write the unique words to a file called wordlist.txt
@@ -17,6 +19,8 @@ def write_wordlist(words):
         f.write('\n'.join(sorted(words)) + '\n')
 
 def crawl(starting_url, base_url):
+    global last_cleanup_time
+    
     # Initialize a PoolManager object
     http = urllib3.PoolManager()
 
@@ -31,6 +35,22 @@ def crawl(starting_url, base_url):
         if url in visited_urls:
             continue
         visited_urls.add(url)
+        
+        # Check if it's been 1 minute since the last cleanup
+        if time.time() - last_cleanup_time >= 60:
+            # Print the size of the wordlist file before cleaning it up
+            wordlist_size_before = os.path.getsize('wordlist.txt')
+            print(f"[x] Wordlist: file size before cleanup: {wordlist_size_before / 1024:.2f} KB")
+            # Clean up the wordlist file by removing duplicate words
+            print(f"[x] Wordlist: Running..Clean up!")
+            with open('wordlist.txt', 'r', encoding='utf-8') as f:
+                words = set(f.read().splitlines())
+            write_wordlist(words)
+            wordlist_size_after = os.path.getsize('wordlist.txt')
+            print(f"[x] Wordlist: file size after cleanup: {wordlist_size_after / 1024:.2f} KB")
+            
+            # Update the last cleanup time
+            last_cleanup_time = time.time()
 
         # Set a random user agent for each request
         headers = {
@@ -44,7 +64,7 @@ def crawl(starting_url, base_url):
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
                 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0',
-                'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',                
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36 Edge/16.16299'
             ])
         }
@@ -84,7 +104,7 @@ def crawl(starting_url, base_url):
 
 
         # Print a progress message to indicate which page was crawled and the number of unique words found
-        print(f"Crawled page: {url} [{num_unique_words} word(s) found]")
+        print(f"[+] Crawled page: {url} [{num_unique_words} word(s) found]")
 
 # Read the starting URL from a file called url.txt
 with open('url.txt') as f:
