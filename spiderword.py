@@ -79,6 +79,12 @@ def crawl(starting_url, base_url):
         http = urllib3.PoolManager(cert_reqs='CERT_NONE')
         response = http.request('GET', url, headers=headers)
         html = response.data
+        try:
+            response = http.request('GET', url, headers=headers)
+            html = response.data
+        except AssertionError:
+            print(f"[!] Error: Could not process URL: {url}")
+            continue
 
         # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(html, 'html.parser')
