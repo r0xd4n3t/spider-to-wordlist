@@ -13,11 +13,6 @@ visited_urls = set()
 urls_to_crawl = set()
 last_cleanup_time = time.time()
 
-def write_wordlist(words):
-    # Write the unique words to a file called wordlist.txt
-    with open('wordlist.txt', 'a', encoding='utf-8') as f:
-        f.write('\n'.join(sorted(words)) + '\n')
-
 def crawl(starting_url, base_url):
     global last_cleanup_time
 
@@ -26,6 +21,12 @@ def crawl(starting_url, base_url):
 
     # Add the starting URL to the set of URLs to crawl
     urls_to_crawl.add(starting_url)
+
+    def write_wordlist(words):
+        # Write the unique words to a set
+        unique_words.update(words)
+
+    unique_words = set()
 
     while urls_to_crawl:
         # Get the next URL from the set of URLs to crawl
@@ -39,21 +40,17 @@ def crawl(starting_url, base_url):
         # Check if it's been 1 minute since the last cleanup
         if time.time() - last_cleanup_time >= 60:
             # Add a delay of 5 seconds before cleanup
-            time.sleep(10)
-            # Print the size of the wordlist file before cleaning it up
-            wordlist_size_before = os.path.getsize('wordlist.txt')
-            print(f"[x] Wordlist: file size before cleanup: {wordlist_size_before / 1024:.2f} KB")
-            # Clean up the wordlist file by removing duplicate words
-            print(f"[x] Wordlist: Running..Clean up!")
-            with open('wordlist.txt', 'r', encoding='utf-8') as f:
-                unique_words = set(line.strip() for line in f if line.strip() and re.search("^[a-zA-Z0-9_.,!?@#$%^&*()-=+ ]*$", line))
-            sorted_unique_words = sorted(unique_words)
-            with open('unique_wordlist.txt', 'w', encoding='utf-8') as f:
-                for word in sorted_unique_words:
-                    f.write(f"{word}\n")
-            os.replace('unique_wordlist.txt', 'wordlist.txt')
-            wordlist_size_after = os.path.getsize('wordlist.txt')
-            print(f"[x] Wordlist: file size after cleanup: {wordlist_size_after / 1024:.2f} KB")
+            time.sleep(5)
+            # Clean up the wordlist set by removing non-alphanumeric characters
+            unique_words_cleaned = set()
+            for word in unique_words:
+                word_cleaned = re.sub(r'\W+', '', word)
+                if word_cleaned:
+                    unique_words_cleaned.add(word_cleaned)
+            # Replace the contents of the file with the unique words
+            with open('wordlist.txt', 'w', encoding='utf-8') as f:
+                f.write('\n'.join(sorted(unique_words_cleaned)) + '\n')
+            unique_words = unique_words_cleaned
 
             # Update the last cleanup time
             last_cleanup_time = time.time()
