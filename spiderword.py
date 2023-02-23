@@ -20,7 +20,7 @@ def write_wordlist(words):
 
 def crawl(starting_url, base_url):
     global last_cleanup_time
-    
+
     # Initialize a PoolManager object
     http = urllib3.PoolManager()
 
@@ -35,7 +35,7 @@ def crawl(starting_url, base_url):
         if url in visited_urls:
             continue
         visited_urls.add(url)
-        
+
         # Check if it's been 1 minute since the last cleanup
         if time.time() - last_cleanup_time >= 60:
             # Add a delay of 5 seconds before cleanup
@@ -54,7 +54,7 @@ def crawl(starting_url, base_url):
             os.replace('unique_wordlist.txt', 'wordlist.txt')
             wordlist_size_after = os.path.getsize('wordlist.txt')
             print(f"[x] Wordlist: file size after cleanup: {wordlist_size_after / 1024:.2f} KB")
-            
+
             # Update the last cleanup time
             last_cleanup_time = time.time()
 
@@ -74,26 +74,28 @@ def crawl(starting_url, base_url):
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36 Edge/16.16299'
             ])
         }
-        
+
         # Make a request to the URL using the PoolManager object and get the HTML content
         http = urllib3.PoolManager(cert_reqs='CERT_NONE')
         response = http.request('GET', url, headers=headers)
         html = response.data
-        try:
-            response = http.request('GET', url, headers=headers)
-            html = response.data
-        except AssertionError:
-            print(f"[!] Error: Could not process URL: {url}")
-            continue
 
-        # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(html, 'html.parser')
+        try:
+            # Parse the HTML content using BeautifulSoup
+            soup = BeautifulSoup(html, 'html.parser')
+        except AssertionError:
+            # Handle parser errors and skip this URL
+            print(f"[!] Parser error: {url}")
+            continue
 
         # Find all the text in the HTML content
         text = soup.get_text()
 
         # Split the text into words
         words = re.findall(r"[a-zA-Z0-9]+", text)
+
+        # Remove any non-ASCII characters from the words
+        words = [word.encode('ascii', 'ignore').decode('utf-8') for word in words]
 
         # Remove any duplicate words
         unique_words = set(words)
