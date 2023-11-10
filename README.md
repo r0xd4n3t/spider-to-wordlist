@@ -22,6 +22,10 @@ Spider To Word list
 
 This code is a Python script for web crawling which extracts unique words from web pages and writes them to a file called wordlist.txt. The script uses the requests library to make HTTP requests to URLs and the BeautifulSoup library to parse the HTML content of the web pages. The script also uses the urllib library to extract the base URL from the starting URL and the re library to split the text content of the web page into words.
 
+> Sample
+
+![](https://raw.githubusercontent.com/r0xd4n3t/spider-to-wordlist/main/img/sample.png)
+
 ## 🕹️ Usage
 
 To use this script, you need to have Python 3 installed on your computer. You can run the script by saving it in a file with a .py extension and running it from the command line using the command "python spiderword.py". Before running the script, you need to create two files: url.txt and wordlist.txt. url.txt should contain the starting URL for the web crawler, and wordlist.txt will be created by the script and will contain the unique words found on the web pages.
