@@ -1,4 +1,3 @@
-
 import re
 import random
 import time
@@ -14,6 +13,52 @@ visited_urls = set()
 urls_to_crawl = set()
 last_cleanup_time = time.time()
 
+def write_wordlist(words):
+    # Write the unique words to a file called wordlist.txt
+    with open('wordlist.txt', 'a', encoding='utf-8') as f:
+        for word in words:
+            f.write(f"{word}\n")
+
+def cleanup_wordlist():
+    global last_cleanup_time
+
+    if time.time() - last_cleanup_time >= 60:
+        # Add a delay of 5 seconds before cleanup
+        time.sleep(5)
+        # Print the size of the wordlist file before cleaning it up
+        wordlist_size_before = os.path.getsize('wordlist.txt')
+        print(f"[+] Wordlist: file size before cleanup: {wordlist_size_before / 1024:.2f} KB")
+
+        # Clean up the wordlist file by removing duplicate words
+        print(f"[*] Wordlist: Running..Clean up!")
+        with open('wordlist.txt', 'r', encoding='utf-8') as f:
+            unique_words = set(line.strip() for line in f if line.strip() and re.search("^[a-zA-Z0-9_.,!?@#$%^&*()-=+ ]*$", line))
+        sorted_unique_words = sorted(unique_words)
+        with open('unique_wordlist.txt', 'w', encoding='utf-8') as f:
+            for word in sorted_unique_words:
+                f.write(f"{word}\n")
+        os.replace('unique_wordlist.txt', 'wordlist.txt')
+        wordlist_size_after = os.path.getsize('wordlist.txt')
+        print(f"[-] Wordlist: file size after cleanup: {wordlist_size_after / 1024:.2f} KB")
+
+        # Update the last cleanup time
+        last_cleanup_time = time.time()
+
+def set_random_user_agent():
+    return random.choice([
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
+        'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0',
+        'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.16 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
+        'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0',
+        'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36 Edge/16.16299'
+    ])
+
 def crawl(starting_url, base_url):
     global last_cleanup_time
 
@@ -22,12 +67,6 @@ def crawl(starting_url, base_url):
 
     # Add the starting URL to the set of URLs to crawl
     urls_to_crawl.add(starting_url)
-
-    def write_wordlist(words):
-        # Write the unique words to a file called wordlist.txt
-        with open('wordlist.txt', 'a', encoding='utf-8') as f:
-            for word in words:
-                f.write(f"{word}\n")
 
     while urls_to_crawl:
         # Get the next URL from the set of URLs to crawl
@@ -38,44 +77,10 @@ def crawl(starting_url, base_url):
             continue
         visited_urls.add(url)
 
-        # Check if it's been 1 minute since the last cleanup
-        if time.time() - last_cleanup_time >= 60:
-            # Add a delay of 5 seconds before cleanup
-            time.sleep(5)
-            # Print the size of the wordlist file before cleaning it up
-            wordlist_size_before = os.path.getsize('wordlist.txt')
-            print(f"[+] Wordlist: file size before cleanup: {wordlist_size_before / 1024:.2f} KB")
-            # Clean up the wordlist file by removing duplicate words
-            print(f"[*] Wordlist: Running..Clean up!")
-            with open('wordlist.txt', 'r', encoding='utf-8') as f:
-                unique_words = set(line.strip() for line in f if line.strip() and re.search("^[a-zA-Z0-9_.,!?@#$%^&*()-=+ ]*$", line))
-            sorted_unique_words = sorted(unique_words)
-            with open('unique_wordlist.txt', 'w', encoding='utf-8') as f:
-                for word in sorted_unique_words:
-                    f.write(f"{word}\n")
-            os.replace('unique_wordlist.txt', 'wordlist.txt')
-            wordlist_size_after = os.path.getsize('wordlist.txt')
-            print(f"[-] Wordlist: file size after cleanup: {wordlist_size_after / 1024:.2f} KB")
-
-            # Update the last cleanup time
-            last_cleanup_time = time.time()
+        cleanup_wordlist()
 
         # Set a random user agent for each request
-        headers = {
-            'User-Agent': random.choice([
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299',
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
-                'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0',
-                'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.16 Safari/537.36',
-                'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
-                'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0',
-                'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36 Edge/16.16299'
-            ])
-        }
+        headers = {'User-Agent': set_random_user_agent()}
 
         # Make a request to the URL using the PoolManager object and get the HTML content
         http = urllib3.PoolManager(cert_reqs='CERT_NONE')
@@ -117,7 +122,6 @@ def crawl(starting_url, base_url):
                 if parsed_url.scheme == 'http' or parsed_url.scheme == 'https':
                     if parsed_url.netloc == urlparse(base_url).netloc or parsed_url.netloc.endswith('.' + urlparse(base_url).netloc):
                         urls_to_crawl.add(absolute_url)
-
 
         # Print a progress message to indicate which page was crawled and the number of unique words found
         print(f"[+] Crawled page: {url} [{num_unique_words} word(s) found]")
