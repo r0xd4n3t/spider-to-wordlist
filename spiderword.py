@@ -20,6 +20,7 @@ last_cleanup_time = time.time()
 WORDLIST_FILE = 'wordlist.txt'
 CLEANUP_INTERVAL = 60
 CLEANUP_DELAY = 5
+MAX_RETRIES = 3
 
 def write_wordlist(words):
     """Write the unique words to a file called wordlist.txt."""
@@ -56,10 +57,25 @@ def set_random_user_agent():
     user_agent = UserAgent()
     return user_agent.random
 
+def fetch_url(http, url, headers):
+    """Fetch the URL with retries and handle SSL errors."""
+    for attempt in range(MAX_RETRIES):
+        try:
+            response = http.request('GET', url, headers=headers)
+            return response
+        except urllib3.exceptions.SSLError as e:
+            print(f"[!] SSL error: {url} - {e}")
+        except urllib3.exceptions.MaxRetryError as e:
+            print(f"[!] Max retries exceeded: {url} - {e}")
+        except Exception as e:
+            print(f"[!] Error fetching {url}: {e}")
+        time.sleep(1)
+    return None
+
 def crawl(starting_url, base_url):
     global last_cleanup_time
 
-    http = urllib3.PoolManager()
+    http = urllib3.PoolManager(cert_reqs='CERT_NONE')  # Skip SSL verification
     urls_to_crawl.add(starting_url)
 
     try:
@@ -72,7 +88,11 @@ def crawl(starting_url, base_url):
             cleanup_wordlist()
 
             headers = {'User-Agent': set_random_user_agent()}
-            response = http.request('GET', url, headers=headers)
+            response = fetch_url(http, url, headers)
+
+            if not response:
+                continue
+
             html = response.data
 
             try:
