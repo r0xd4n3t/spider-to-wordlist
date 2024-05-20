@@ -27,11 +27,12 @@ def write_wordlist(words):
         for word in words:
             f.write(f"{word}\n")
 
-def cleanup_wordlist():
-    """Clean up the wordlist file by removing duplicate words and updating the last cleanup time."""
+def cleanup_wordlist(force_cleanup=False):
     global last_cleanup_time
 
-    if time.time() - last_cleanup_time >= CLEANUP_INTERVAL:
+    print("[*] Initiating wordlist cleanup...")
+
+    if time.time() - last_cleanup_time >= CLEANUP_INTERVAL or force_cleanup:
         time.sleep(CLEANUP_DELAY)
         wordlist_size_before = os.path.getsize(WORDLIST_FILE)
         print(f"[+] Wordlist: file size before cleanup: {wordlist_size_before / 1024:.2f} KB")
@@ -47,6 +48,8 @@ def cleanup_wordlist():
         wordlist_size_after = os.path.getsize(WORDLIST_FILE)
         print(f"[-] Wordlist: file size after cleanup: {wordlist_size_after / 1024:.2f} KB")
         last_cleanup_time = time.time()
+    else:
+        print("[*] Cleanup not needed at this time.")
 
 def set_random_user_agent():
     """Generate a random user agent using fake_useragent."""
@@ -54,7 +57,6 @@ def set_random_user_agent():
     return user_agent.random
 
 def crawl(starting_url, base_url):
-    """Crawl web pages starting from the given URL and collect words."""
     global last_cleanup_time
 
     http = urllib3.PoolManager()
@@ -97,7 +99,7 @@ def crawl(starting_url, base_url):
 
     except KeyboardInterrupt:
         print("\n[-] Crawling process interrupted. Cleaning up and exiting gracefully.")
-        cleanup_wordlist()
+        cleanup_wordlist(force_cleanup=True)
         exit()
 
 if __name__ == "__main__":
