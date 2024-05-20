@@ -26,7 +26,9 @@ def write_wordlist(words):
     """Write the unique words to a file called wordlist.txt."""
     with open(WORDLIST_FILE, 'a', encoding='utf-8') as f:
         for word in words:
-            f.write(f"{word}\n")
+            if word.strip() and word.strip() not in visited_urls:  # Check if word is not empty and not already visited
+                f.write(f"{word}\n")
+                visited_urls.add(word.strip())  # Add the word to the visited set
 
 def cleanup_wordlist(force_cleanup=False):
     global last_cleanup_time
